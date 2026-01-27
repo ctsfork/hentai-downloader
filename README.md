@@ -1,6 +1,6 @@
 # E(X)Hentai Downloader
 
-A manga downloader for e-hentai.org and exhentai.org, written in Rust.
+A **Fast** manga downloader for e-hentai.org and exhentai.org, written in Rust.
 
 ## Features
 
