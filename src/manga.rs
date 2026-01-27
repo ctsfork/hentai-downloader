@@ -43,7 +43,10 @@ impl Manga {
         pages
     }
 
-    fn get_image_link(url: &str, h: Handler) -> String {
+    /// Returns (image_url, filename)
+    /// filename is extracted from page URL (e.g., "3729116-3" from ".../s/xxx/3729116-3")
+    /// with extension from the actual image URL
+    fn get_image_link(url: &str, h: Handler) -> (String, String) {
         let tmp = match &(h.host.to_string())[..] {
             "exhentai.org" => "exhentai",
             "e-hentai.org" => "ehgt",
@@ -65,13 +68,31 @@ impl Manga {
                 }
             });
 
-        match ret {
+        let image_url = match ret {
             Some(x) => x,
             None => panic!("Get image Failed with url: {}", url),
-        }
+        };
+
+        // Extract filename from page URL (last segment, e.g., "3729116-3")
+        let base_name = url
+            .trim_end_matches('/')
+            .split('/')
+            .last()
+            .unwrap_or("unknown");
+
+        // Extract extension from image URL
+        let extension = image_url
+            .split('/')
+            .last()
+            .and_then(|s| s.split('.').last())
+            .unwrap_or("jpg");
+
+        let filename = format!("{}.{}", base_name, extension);
+        (image_url, filename)
     }
 
-    pub fn get_download_urls<'a>(&self, h: &'a Handler) -> Vec<String> {
+    /// Returns Vec<(image_url, filename)>
+    pub fn get_download_urls<'a>(&self, h: &'a Handler) -> Vec<(String, String)> {
         let url = &self.url;
         let pages = self.pages;
 
@@ -100,8 +121,8 @@ impl Manga {
                 let cloned_v = download_urls.clone();
                 let g = h.clone();
                 pool.execute(move || {
-                    let image_link: String = Manga::get_image_link(&link, g);
-                    cloned_v.lock().unwrap().push(image_link);
+                    let (image_url, filename) = Manga::get_image_link(&link, g);
+                    cloned_v.lock().unwrap().push((image_url, filename));
                 });
             }
 
