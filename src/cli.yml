@@ -1,6 +1,6 @@
 name: hentai-downloader
-version: "0.1"
-author: H.-S Zheng <mathan0203@gmail.com>
+version: "0.2"
+author: Hongsheng Zheng <mathan0203@gmail.com>
 about: Download the Manga from e(x)hentai website.
 args:
   - cookie:

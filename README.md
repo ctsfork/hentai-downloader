@@ -1,39 +1,42 @@
 # E(X)Hentai Downloader
 
+A manga downloader for e-hentai.org and exhentai.org, written in Rust.
 
-**Download Manga from e-hentai/exhentai**
+## Features
 
-Be careful, the E(x)Hentai website has image limit for user(It can be viewd at your ehentai home page) 
-
-![limit](https://i.imgur.com/OglhmK5.png)
-
-So, you will take hours to recover if you exceed this image limit.
+- Multi-threaded downloading for maximum speed
+- Automatic retry with verification (up to 5 attempts)
+- Supports both e-hentai.org and exhentai.org
+- Cross-platform: Linux, macOS, Windows
 
 ## Installation
 
-There have two way to install this downloader, the first one is you can directly donwload it from Release page, or the other is compile it by yourself.
+### Download Pre-built Binary
 
-Support `Linux`, `Windows` right now.
+Download the latest release from the [Releases](https://github.com/rniczh/hentai-downloader/releases) page.
 
-## Compilation
+| Platform | Download |
+|----------|----------|
+| Linux (x64) | `hentai-downloader-x86_64-unknown-linux-gnu.tar.gz` |
+| macOS (Intel) | `hentai-downloader-x86_64-apple-darwin.tar.gz` |
+| macOS (Apple Silicon) | `hentai-downloader-aarch64-apple-darwin.tar.gz` |
+| Windows (x64) | `hentai-downloader-x86_64-pc-windows-msvc.zip` |
 
-Make sure you have installed `rustup`, link: https://rustup.rs/
+### Build from Source
 
-and input this command:
+Make sure you have [Rust](https://rustup.rs/) installed, then run:
 
-```
+```bash
 cargo build --release
 ```
 
-Then the exectable will placed in target/release/hentai-downloader
+The executable will be at `target/release/hentai-downloader`.
 
 ## Usage
 
-See `hentai-downloader --help` for help.
-
 ```
-hentai-downloader 0.1
-H.-S Zheng <mathan0203@gmail.com>
+hentai-downloader 0.2
+Hongsheng Zheng <mathan0203@gmail.com>
 Download the Manga from e(x)hentai website.
 
 USAGE:
@@ -45,25 +48,41 @@ FLAGS:
 
 OPTIONS:
     -c, --cookie <file>    The cookie file for access exhentai.org
-    -u, --url <url>        The url of Manga for which you want to downloa
-
+    -u, --url <url>        The url of Manga for which you want to download
 ```
 
+### Examples
 
-**Example.**
+**Download from e-hentai.org:**
 
-`hentai-downloader -u https://e-hentai.org/g/12345/hijklmn/ `
+```bash
+hentai-downloader -u https://e-hentai.org/g/12345/abcdef/
+```
 
-And it will download the Manga into tmp12345 directory
+**Download from exhentai.org (requires cookie):**
 
-If you are exhentai user then you can provide you cookie file with `-c ` option
+```bash
+hentai-downloader -u https://exhentai.org/g/12345/abcdef/ -c cookie.txt
+```
 
-`hentai-downloader -u https://exhentai.org/g/12345/hijklmn/ -c cookie.txt`
+Downloaded files will be saved to `tmp{gallery_id}/` directory.
 
-## Cookies
+## Cookie Setup (for exhentai.org)
 
-How to get the cookie.txt ?
+To access exhentai.org, you need to provide your session cookies.
 
-Copy this information (take FireFox as example) to cookie.txt
+1. Log in to exhentai.org in your browser
+2. Open Developer Tools (F12) -> Storage/Application -> Cookies
+3. Copy the cookie values and save to `cookie.txt`:
 
-![example](https://i.imgur.com/kUBPTyn.png)
+```
+ipb_member_id=YOUR_ID; ipb_pass_hash=YOUR_HASH; igneous=YOUR_IGNEOUS
+```
+
+## Notice
+
+E(X)Hentai has an implicit image viewing limit per user.
+If you exceed this limit, you'll need to wait several hours for it to recover.
+
+## License
+GPL-3.0 license
