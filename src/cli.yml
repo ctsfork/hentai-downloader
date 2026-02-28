@@ -15,3 +15,10 @@ args:
       value_name: url
       required: true
       help: The url of Manga for which you want to download
+
+  - retry:
+      short: r
+      long: retry
+      takes_value: false
+      help: Force retry until all downloads succeed
+    

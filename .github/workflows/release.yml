@@ -1,9 +1,16 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  # push:
+  #   tags:
+  #     - 'v*'
+
+  # push:
+  #   branches: [ "master" ]
+
+  #手动执行任务
+  workflow_dispatch:
+
 
 env:
   CARGO_TERM_COLOR: always
@@ -78,8 +85,23 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      # - name: Create Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: artifacts/**/*
+      #     generate_release_notes: true
+
+      - name: Publish Files To Release
+        uses: ncipollo/release-action@v1
         with:
-          files: artifacts/**/*
-          generate_release_notes: true
+          allowUpdates: true
+          replacesArtifacts: true
+          prerelease: false
+          draft: false
+          # artifacts: "*.zip,config.json,clash.sh"
+          # artifacts: "*.zip" 
+          artifacts: "artifacts/**/*" 
+          tag: "v0.2.0"
+          token: ${{ secrets.GITHUB_TOKEN }}   
+
+

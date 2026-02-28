@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 clap = {version = "2.32", features = ["yaml"]}
-reqwest = "0.9.12"
-url = "1.7.2"
+reqwest = { version = "0.11", features = ["blocking"] }
+url = "2.5.8"
 select = "0.6"
 threadpool = "1.7.1"

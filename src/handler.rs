@@ -2,6 +2,12 @@ use reqwest::header::*;
 use std::path::Path;
 use std::fmt;
 
+//kimi新增
+use reqwest::Proxy;
+use reqwest::blocking::{Client};
+
+
+
 #[derive(Debug)]
 pub enum DownloadError {
     Request(reqwest::Error),
@@ -28,23 +34,247 @@ impl DownloadError {
     }
 }
 
+
+//kimi 新增
+impl DownloadError {
+    pub fn status(&self) -> Option<reqwest::StatusCode> {
+        match self {
+            DownloadError::Request(e) => e.status(),
+            _ => None,
+        }
+    }
+
+    // 用来检测错误状态时，是否允许重试，特别是类似404时不允许重试。
+    // 如果允许，或者放宽测试条件，如只要网络请求不正确(不管是404,302，或者没有网络)都允许重试，那么可以适当修改该方法中网络错误中的条件。
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            // =========================
+            // HTTP / 网络层错误
+            // =========================
+            DownloadError::Request(e) => {
+                // 超时 / 建立连接失败
+                if e.is_timeout() || e.is_connect() {
+                    return true;
+                }
+
+                // // 旧方法： 通过 get_ref() 判断底层 io error - 即实现is_connect()的效果
+                // if let Some(io_err) = e.get_ref().and_then(|e| e.downcast_ref::<std::io::Error>()) {
+                //     match io_err.kind() {
+                //         std::io::ErrorKind::ConnectionRefused
+                //         | std::io::ErrorKind::ConnectionReset
+                //         | std::io::ErrorKind::ConnectionAborted
+                //         | std::io::ErrorKind::NotConnected
+                //         | std::io::ErrorKind::TimedOut
+                //         | std::io::ErrorKind::BrokenPipe => return true,
+                //         _ => {}
+                //     }
+                // }
+
+                // HTTP 状态码
+                if let Some(status) = e.status() {
+                    // 429 特殊处理
+                    if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+                        return true;
+                    }
+
+                    // 5xx 服务器错误
+                    if status.is_server_error() {
+                        return true;
+                    }
+
+                    // 4xx 不重试
+                    return false;
+                }
+
+                false
+            }
+
+
+            // =========================
+            // 下载过程中 IO 错误
+            // =========================
+            DownloadError::Io(e) => {
+                // 🔴 磁盘满（必须优先判断）
+                if let Some(code) = e.raw_os_error() {
+                    // Linux/macOS = 28
+                    // Windows = 112
+                    if code == 28 || code == 112 {
+                        return false;
+                    }
+                }
+
+                match e.kind() {
+                    // 可恢复 IO 错误
+                    std::io::ErrorKind::Interrupted
+                    | std::io::ErrorKind::TimedOut
+                    | std::io::ErrorKind::ConnectionReset
+                    | std::io::ErrorKind::ConnectionAborted
+                    | std::io::ErrorKind::BrokenPipe
+                    | std::io::ErrorKind::UnexpectedEof => true,
+
+                    _ => false,
+                }
+            }
+
+           
+            // =========================
+            // 文件校验失败
+            // =========================
+            DownloadError::Verification(_) => false,
+        }
+    }
+}
+
+
+
+
 #[derive(Clone)]
 pub struct Handler {
-    pub client: reqwest::Client,
+    // pub client: reqwest::Client,
+    pub client: Client,
     pub host: String,
     cookie: String,
 }
 
 impl Handler {
+
+    //kimi新增-检测环境变量中是否存在all_proxy相关配置
+    fn has_env_proxy() -> bool {
+    std::env::var("HTTPS_PROXY").is_ok()
+        || std::env::var("https_proxy").is_ok()
+        || std::env::var("HTTP_PROXY").is_ok()
+        || std::env::var("http_proxy").is_ok()
+        || std::env::var("ALL_PROXY").is_ok()
+        || std::env::var("all_proxy").is_ok()
+    }
+
+
+    //kimi 新增
+    fn build_client() -> Client {
+        if !Self::has_env_proxy() {
+            // 没有代理 → 直接默认 client
+            return Client::new();
+        }
+
+        let mut client = Client::builder();
+
+        /*
+        添加顺序是：
+            1️⃣ HTTPS_PROXY
+            2️⃣ HTTP_PROXY
+            3️⃣ ALL_PROXY
+        而在 reqwest 里：
+            .proxy() 是添加规则，不是覆盖
+            允许多个 proxy 规则共存。
+
+        匹配逻辑是：
+            具体协议优先于 all
+            https 规则只匹配 https
+            http 规则只匹配 http
+            all 作为兜底
+        所以实际上：
+            https 请求 → 走 HTTPS_PROXY
+            http 请求 → 走 HTTP_PROXY
+            其它协议 → 走 ALL_PROXY
+        从“设计语义”角度：
+        通常我们希望逻辑是：
+            1️⃣ ALL_PROXY 作为默认兜底
+            2️⃣ HTTP_PROXY 覆盖 http
+            3️⃣ HTTPS_PROXY 覆盖 https
+
+        
+        注意：
+        如果想使用Proxy::system()这是不对的，因为没有system这种类型，
+        如果想自动获取系统代理(有的系统上可以，有的系统上不可以)，
+        则可以使用Client::new()的默认方式创建client,让其全部默认(可能可以自动使用系统代理，跟reqwest版本相关)
+        如何真正“自动读取系统代理”:
+        let client = reqwest::Client::new();
+        或者：
+        let client = reqwest::Client::builder().build()?;
+
+        反之则使用Client::builder()的方式手动管理，即当前下面实现的方法。
+        */
+
+
+        // 1️⃣ 添加 system 代理
+
+        //这种方法是：自动读取系统代理，但是不同的系统可能会有不同的限制，如Windows下无法获取socks5代理方式，一般在GUI中使用
+        // Client::builder().proxy(Proxy::system())
+        // 不支持Proxy::system
+        // client = client.proxy(Proxy::system());
+            
+
+        // 2️⃣ 再添加手动环境变量代理（作为 fallback）
+
+        //这种方式是根据环境变量中的all_proxy|http_proxy|https_proxy变量的值来手动设置代理的
+        //因为 reqwest 允许多个 proxy 规则共存。
+        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("all_proxy"))
+        {
+            if let Ok(proxy) = Proxy::all(&proxy_url) {
+                client = client.proxy(proxy);
+            }
+        }
+        if let Ok(proxy_url) = std::env::var("HTTP_PROXY")
+            .or_else(|_| std::env::var("http_proxy"))
+        {
+            if let Ok(proxy) = Proxy::http(&proxy_url) {
+                client = client.proxy(proxy);
+            }
+        }
+        if let Ok(proxy_url) = std::env::var("HTTPS_PROXY")
+            .or_else(|_| std::env::var("https_proxy"))
+        {
+            if let Ok(proxy) = Proxy::https(&proxy_url) {
+                client = client.proxy(proxy);
+            }
+        }
+
+
+        // 设置超时
+        // 否则代理挂掉时可能卡很久。
+        // client = client
+        // .connect_timeout(std::time::Duration::from_secs(10))
+        // .timeout(std::time::Duration::from_secs(30));
+
+
+        /*
+        方法           是否 panic            是否打印错误信息
+        unwrap()         是                 打印默认 panic 信息
+        expect()         是                 打印你提供的错误信息
+        client.build().unwrap()
+        client.build().expect("Failed to build HTTP client")
+        */
+        client.build().unwrap()
+    }
+
+
     pub fn new(host: &str, cookie: &str) -> Self {
         Handler {
-            client: reqwest::Client::new(),
+            //修改前
+            // client: reqwest::Client::new(),
+            //Kimi修改后
+            client: Self::build_client(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
     }
 
-    pub fn request(&self, task: &str, url: &str) -> Result<reqwest::Response, reqwest::Error> {
+    pub fn request(&self, _task: &str, url: &str) -> Result<reqwest::blocking::Response, reqwest::Error> {
+        // let res = self
+        //     .client
+        //     .get(url)
+        //     .header(COOKIE, &self.cookie[..])
+        //     .header(HOST, &self.host[..])
+        //     .header(
+        //         USER_AGENT,
+        //         "Mozilla/5.0 (X11; Linux x86_64; rv:65.0) Gecko/20100101 Firefox/65.0",
+        //     )
+        //     .send();
+        // res
+
+
+        //kimi修改 - 与 is_retryable 相关联
         let res = self
             .client
             .get(url)
@@ -54,11 +284,29 @@ impl Handler {
                 USER_AGENT,
                 "Mozilla/5.0 (X11; Linux x86_64; rv:65.0) Gecko/20100101 Firefox/65.0",
             )
-            .send();
+            .send()?                // 网络错误
+            .error_for_status();    // 让 HTTP 非 2xx 成为错误，如果没该方法，那么形如404也会返回为成功
         res
     }
 
     pub fn download(target: &str, path: &str, filename: &str, cookie: &str) -> Result<(), DownloadError> {
+        //Kimi 新增 - 检查文件是否存在-如果存在则跳过本次下载
+        let fname = Path::new(path).join(filename);
+
+        // 🔴 第一步：检查是否已存在
+        if fname.exists() {
+            println!("File already exists: {}, skipping download.", fname.display());
+            return Ok(());
+        }
+        // // 检测文件大小 > 0 才跳过，避免空文件和上次下载中断
+        // if let Ok(metadata) = std::fs::metadata(&fname) {
+        //     if metadata.len() > 0 {
+        //         println!("File already exists: {}, skipping download.", fname.display());
+        //         return Ok(());
+        //     }
+        // }
+
+
         // Extract host from target URL for proper headers
         let host = reqwest::Url::parse(target)
             .ok()
@@ -71,7 +319,8 @@ impl Handler {
             Err(e) => return Err(DownloadError::Request(e)),
         };
 
-        let fname = Path::new(path).join(filename);
+        // 修改前
+        // let fname = Path::new(path).join(filename);
         let mut dest = match std::fs::File::create(&fname) {
             Ok(f) => f,
             Err(e) => return Err(DownloadError::Io(e)),
@@ -79,6 +328,8 @@ impl Handler {
 
         println!("Downloading: {}", fname.to_str().unwrap());
         if let Err(e) = std::io::copy(&mut res, &mut dest) {
+            //当 copy 失败时，必须删除半文件
+            let _ = std::fs::remove_file(&fname);
             return Err(DownloadError::Io(e));
         }
 
