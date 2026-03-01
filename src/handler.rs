@@ -6,6 +6,9 @@ use std::fmt;
 use reqwest::Proxy;
 use reqwest::blocking::{Client};
 use std::collections::HashMap;
+use std::net::{TcpStream, ToSocketAddrs};
+use std::time::Duration;
+use reqwest::Url;
 
 
 #[derive(Debug)]
@@ -149,12 +152,75 @@ impl Handler {
     }
 
 
+    //kimi-检查代理端口是否可用，一般用来判断环境变量中配置的代理服务地址的端口是否启用。
+    fn check_proxy_alive(proxy_url: &str) -> bool {
+        Url::parse(proxy_url)
+        .ok()
+        .and_then(|url| {
+            let host = url.host_str()?;
+            let port = url.port_or_known_default()?;
+            (host, port).to_socket_addrs().ok()?.next()
+        })
+        .map(|addr| {
+            TcpStream::connect_timeout(&addr, Duration::from_secs(2)).is_ok()
+        })
+        .unwrap_or(false)
+
+        
+        // if let Ok(url) = Url::parse(proxy_url) {
+        //     if let Some(host) = url.host_str() {
+        //         if let Some(port) = url.port_or_known_default() {
+        //             if let Ok(mut addrs) = (host, port).to_socket_addrs() {
+        //                 if let Some(addr) = addrs.next() {
+        //                     return TcpStream::connect_timeout(
+        //                         &addr,
+        //                         Duration::from_secs(2),
+        //                     )
+        //                     .is_ok();
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // false
+    }
+
+
+
     //kimi 新增
     fn build_client() -> Client {
+        // 环境变量中没有代理配置信息
         if !Self::has_env_proxy() {
             // 没有代理 → 直接默认 client
             return Client::new();
         }
+
+
+
+        // 环境变量中配置了代理信息，检查其对应的代理端口是否启用
+        let proxy_vars = [
+            "ALL_PROXY",
+            "all_proxy",
+            "HTTP_PROXY",
+            "http_proxy",
+            "HTTPS_PROXY",
+            "https_proxy",
+        ];
+        let mut is_enable_port = false;
+        for var in proxy_vars {
+            if let Ok(proxy_url) = std::env::var(var) {
+                if self.check_proxy_alive(&proxy_url) {
+                    is_enable_port = true;
+                    break;
+                } 
+            }
+        }
+        //如果都不可用则不创建Proxy配置
+        if !is_enable_port {
+            return Client::new();
+        }
+
+
 
         let mut client = Client::builder();
 
@@ -208,22 +274,22 @@ impl Handler {
 
         //这种方式是根据环境变量中的all_proxy|http_proxy|https_proxy变量的值来手动设置代理的
         //因为 reqwest 允许多个 proxy 规则共存。
-        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
-            .or_else(|_| std::env::var("all_proxy"))
+        if let Ok(proxy_url) = std::env::var("all_proxy")
+            .or_else(|_| std::env::var("ALL_PROXY"))
         {
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 client = client.proxy(proxy);
             }
         }
-        if let Ok(proxy_url) = std::env::var("HTTP_PROXY")
-            .or_else(|_| std::env::var("http_proxy"))
+        if let Ok(proxy_url) = std::env::var("http_proxy")
+            .or_else(|_| std::env::var("HTTP_PROXY"))
         {
             if let Ok(proxy) = Proxy::http(&proxy_url) {
                 client = client.proxy(proxy);
             }
         }
-        if let Ok(proxy_url) = std::env::var("HTTPS_PROXY")
-            .or_else(|_| std::env::var("https_proxy"))
+        if let Ok(proxy_url) = std::env::var("https_proxy")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
         {
             if let Ok(proxy) = Proxy::https(&proxy_url) {
                 client = client.proxy(proxy);
