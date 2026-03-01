@@ -45,6 +45,7 @@ USAGE:
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
+    -r, --retry      Force retry until all downloads succeed
 
 OPTIONS:
     -c, --cookie <file>    The cookie file for access exhentai.org
