@@ -67,17 +67,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //未获取到页面数据-可能是缺少cookie或者这是一个存在着”内容警告“的图集，就会下载失败
     //例如: https://e-hentai.org/g/3809093/c06ff2b95a/
     if download_urls.is_empty() {
-        // return Err("No downloadable resources found".into());
-        if host == "e-hentai.org" {
-            eprintln!("No downloadable resources found.");
-            eprintln!("Warning: This may be a flagged or restricted gallery that cannot be downloaded.");
-        } else {
-            eprintln!("No downloadable resources found.");
-            eprintln!("It appears you are accessing e-hentai.org without a valid cookie.");
-            eprintln!("Please provide a cookie file using -c.");
+        eprintln!("Error: No downloadable resources found.");
+        eprintln!("Possible reasons:");
+        // 1️⃣ 图集不存在
+        eprintln!("  • The gallery may not exist.");
+        // 2️⃣ 被标记为受限制
+        eprintln!("  • The gallery may be flagged as restricted or containing offensive content and cannot be downloaded.");
+        // 3️⃣ 特殊域名提示
+        if host == "exhentai.org" {
+            if cookie.trim().is_empty() {
+                eprintln!("  • Accessing exhentai.org requires a valid login cookie.");
+                eprintln!("    Please provide one using: -c <cookie_file>");
+            }
         }
         std::process::exit(1);
     }
+
 
     let path = format!("tmp{}", m.number);
     if !Path::new(&path).exists() {

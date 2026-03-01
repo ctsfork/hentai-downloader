@@ -260,6 +260,41 @@ impl Handler {
         }
     }
 
+
+    //kimi新增 
+    fn build_cookie(&self) -> String {
+        let mut map = HashMap::new();
+
+        // 1️⃣ 默认 nw=, 表示允许下载受限制或被标记为具有攻击性的图集
+        let defaults = [
+            ("nw", "1"),
+            // ("theme", "dark"),
+        ];
+        for (k, v) in defaults {
+            map.insert(k.to_string(), v.to_string());
+        }
+
+
+        // 2️⃣ 解析用户 cookie
+        for part in self.cookie.split(';') {
+            let trimmed = part.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+
+            if let Some((key, value)) = trimmed.split_once('=') {
+                map.insert(key.trim().to_string(), value.trim().to_string());
+            }
+        }
+
+        // 3️⃣ 重建 cookie 字符串
+        map.iter()
+            .map(|(k, v)| format!("{}={}", k, v))
+            .collect::<Vec<_>>()
+            .join("; ")
+    }
+
+
     pub fn request(&self, _task: &str, url: &str) -> Result<reqwest::blocking::Response, reqwest::Error> {
         // let res = self
         //     .client
@@ -278,7 +313,8 @@ impl Handler {
         let res = self
             .client
             .get(url)
-            .header(COOKIE, &self.cookie[..])
+            // .header(COOKIE, &self.cookie[..])
+            .header(COOKIE, self.build_cookie())
             .header(HOST, &self.host[..])
             .header(
                 USER_AGENT,
