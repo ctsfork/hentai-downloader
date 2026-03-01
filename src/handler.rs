@@ -166,7 +166,7 @@ impl Handler {
         })
         .unwrap_or(false)
 
-        
+
         // if let Ok(url) = Url::parse(proxy_url) {
         //     if let Some(host) = url.host_str() {
         //         if let Some(port) = url.port_or_known_default() {
@@ -209,7 +209,7 @@ impl Handler {
         let mut is_enable_port = false;
         for var in proxy_vars {
             if let Ok(proxy_url) = std::env::var(var) {
-                if self.check_proxy_alive(&proxy_url) {
+                if Self::check_proxy_alive(&proxy_url) {
                     is_enable_port = true;
                     break;
                 } 
@@ -274,10 +274,10 @@ impl Handler {
 
         //这种方式是根据环境变量中的all_proxy|http_proxy|https_proxy变量的值来手动设置代理的
         //因为 reqwest 允许多个 proxy 规则共存。
-        if let Ok(proxy_url) = std::env::var("all_proxy")
-            .or_else(|_| std::env::var("ALL_PROXY"))
+        if let Ok(proxy_url) = std::env::var("https_proxy")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
         {
-            if let Ok(proxy) = Proxy::all(&proxy_url) {
+            if let Ok(proxy) = Proxy::https(&proxy_url) {
                 client = client.proxy(proxy);
             }
         }
@@ -288,10 +288,10 @@ impl Handler {
                 client = client.proxy(proxy);
             }
         }
-        if let Ok(proxy_url) = std::env::var("https_proxy")
-            .or_else(|_| std::env::var("HTTPS_PROXY"))
+        if let Ok(proxy_url) = std::env::var("all_proxy")
+            .or_else(|_| std::env::var("ALL_PROXY"))
         {
-            if let Ok(proxy) = Proxy::https(&proxy_url) {
+            if let Ok(proxy) = Proxy::all(&proxy_url) {
                 client = client.proxy(proxy);
             }
         }
