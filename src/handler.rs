@@ -5,7 +5,7 @@ use std::fmt;
 //kimi新增
 use reqwest::Proxy;
 use reqwest::blocking::{Client};
-
+use std::collections::HashMap;
 
 
 #[derive(Debug)]
