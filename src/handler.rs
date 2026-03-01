@@ -199,12 +199,12 @@ impl Handler {
 
         // 环境变量中配置了代理信息，检查其对应的代理端口是否启用
         let proxy_vars = [
-            "ALL_PROXY",
-            "all_proxy",
-            "HTTP_PROXY",
             "http_proxy",
-            "HTTPS_PROXY",
+            "HTTP_PROXY",
             "https_proxy",
+            "HTTPS_PROXY",
+            "all_proxy",
+            "ALL_PROXY",
         ];
         let mut is_enable_port = false;
         for var in proxy_vars {
@@ -224,63 +224,7 @@ impl Handler {
 
         let mut client = Client::builder();
 
-        /*
-        添加顺序是：
-            1️⃣ HTTPS_PROXY
-            2️⃣ HTTP_PROXY
-            3️⃣ ALL_PROXY
-        而在 reqwest 里：
-            .proxy() 是添加规则，不是覆盖
-            允许多个 proxy 规则共存。
-
-        匹配逻辑是：
-            具体协议优先于 all
-            https 规则只匹配 https
-            http 规则只匹配 http
-            all 作为兜底
-        所以实际上：
-            https 请求 → 走 HTTPS_PROXY
-            http 请求 → 走 HTTP_PROXY
-            其它协议 → 走 ALL_PROXY
-        从“设计语义”角度：
-        通常我们希望逻辑是：
-            1️⃣ ALL_PROXY 作为默认兜底
-            2️⃣ HTTP_PROXY 覆盖 http
-            3️⃣ HTTPS_PROXY 覆盖 https
-
         
-        注意：
-        如果想使用Proxy::system()这是不对的，因为没有system这种类型，
-        如果想自动获取系统代理(有的系统上可以，有的系统上不可以)，
-        则可以使用Client::new()的默认方式创建client,让其全部默认(可能可以自动使用系统代理，跟reqwest版本相关)
-        如何真正“自动读取系统代理”:
-        let client = reqwest::Client::new();
-        或者：
-        let client = reqwest::Client::builder().build()?;
-
-        反之则使用Client::builder()的方式手动管理，即当前下面实现的方法。
-        */
-
-
-        // 1️⃣ 添加 system 代理
-
-        //这种方法是：自动读取系统代理，但是不同的系统可能会有不同的限制，如Windows下无法获取socks5代理方式，一般在GUI中使用
-        // Client::builder().proxy(Proxy::system())
-        // 不支持Proxy::system
-        // client = client.proxy(Proxy::system());
-            
-
-        // 2️⃣ 再添加手动环境变量代理（作为 fallback）
-
-        //这种方式是根据环境变量中的all_proxy|http_proxy|https_proxy变量的值来手动设置代理的
-        //因为 reqwest 允许多个 proxy 规则共存。
-        if let Ok(proxy_url) = std::env::var("https_proxy")
-            .or_else(|_| std::env::var("HTTPS_PROXY"))
-        {
-            if let Ok(proxy) = Proxy::https(&proxy_url) {
-                client = client.proxy(proxy);
-            }
-        }
         if let Ok(proxy_url) = std::env::var("http_proxy")
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {
@@ -288,29 +232,23 @@ impl Handler {
                 client = client.proxy(proxy);
             }
         }
+        if let Ok(proxy_url) = std::env::var("https_proxy")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+        {
+            if let Ok(proxy) = Proxy::https(&proxy_url) {
+                client = client.proxy(proxy);
+            }
+        }
         if let Ok(proxy_url) = std::env::var("all_proxy")
             .or_else(|_| std::env::var("ALL_PROXY"))
         {
+            let proxy_url = proxy_url.replace("socks5://", "socks5h://");
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 client = client.proxy(proxy);
             }
         }
 
 
-        // 设置超时
-        // 否则代理挂掉时可能卡很久。
-        // client = client
-        // .connect_timeout(std::time::Duration::from_secs(10))
-        // .timeout(std::time::Duration::from_secs(30));
-
-
-        /*
-        方法           是否 panic            是否打印错误信息
-        unwrap()         是                 打印默认 panic 信息
-        expect()         是                 打印你提供的错误信息
-        client.build().unwrap()
-        client.build().expect("Failed to build HTTP client")
-        */
         client.build().unwrap()
     }
 
