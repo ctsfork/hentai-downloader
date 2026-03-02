@@ -16,6 +16,7 @@ pub struct Cli {
 
     pub proxy_mode: ProxyMode,
     pub proxy: Option<String>,
+    pub convert_socks5h: bool,
 }
 
 
@@ -25,7 +26,6 @@ pub enum ProxyMode {
     Http,
     Socks,
 }
-
 
 
 pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
@@ -63,8 +63,6 @@ pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
     let retry = matches.is_present("retry");
 
 
-
-
     // -------------------------
     // 4️⃣ proxy-mode
     // -------------------------
@@ -73,15 +71,38 @@ pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
         "http" => ProxyMode::Http,
         "socks" => ProxyMode::Socks,
         _ => unreachable!(),
-        // _ => expect("--proxy-mode的值错误，只支持:none,http,socks");
     };
-
 
 
     // -------------------------
     // 5️⃣ proxy
     // -------------------------
-    let proxy = matches.value_of("proxy").map(|s| s.to_string());
+    let proxy = if let Some(proxy_str) = matches.value_of("proxy") {
+        let proxy_str = proxy_str.trim();
+        let parsed = Url::parse(proxy_str)
+            .expect("Invalid proxy URL format");
+
+        match parsed.scheme() {
+            "http" | "https" | "socks5" | "socks5h" => {}
+            _ => {
+                eprintln!(
+                    "Error: unsupported proxy scheme '{}'.\n\
+                     Supported schemes: http, https, socks5, socks5h",
+                    parsed.scheme()
+                );
+                std::process::exit(1);
+            }
+        }
+
+        Some(proxy_str.to_string())
+    } else {
+        None
+    };
+
+
+
+    let convert_socks5h = matches.is_present("convert-socks5h");
+
 
 
     Cli {
@@ -90,5 +111,6 @@ pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
         retry,
         proxy_mode,
         proxy,
+        convert_socks5h,
     }
 }

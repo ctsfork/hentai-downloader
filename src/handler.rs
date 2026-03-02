@@ -11,11 +11,6 @@ use std::time::Duration;
 use reqwest::Url;
 
 
-// #[macro_use]
-// extern crate clap;
-
-// mod parser;
-
 use clap::App;
 
 use crate::parser;
@@ -160,27 +155,28 @@ impl Handler {
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
         let cli: Cli = parser::parse_cli(&matches);
-        println!("{:?}", cli);
-
-
+        println!("kimi-cli -> {:?}", cli);
 
         // 1️⃣ 最高优先级：--proxy
         if let Some(proxy_url) = &cli.proxy {
-             println!("Using custom proxy: {}", proxy_url);
+             // println!("Using custom proxy: {}", proxy_url);
+             println!("准备配置自定义代理服务: {}", proxy_url);
             return Self::apply_custom_proxy(&proxy_url);
         } else {
             // 2️⃣ 根据 proxy-mode
             match cli.proxy_mode {
                 ProxyMode::None => { 
-                    println!("Proxy mode: none (no proxy)");
+                    // println!("Proxy mode: none (no proxy)");
                    return Client::new();
                 }
                 ProxyMode::Http => { 
-                    println!("Proxy mode: http (env)");
+                    // println!("Proxy mode: http (env)");
+                    println!("准备配置HTTP代理服务，从环境变量中获取代理地址......");
                     return Self::apply_http_env_proxy();
                 }
                 ProxyMode::Socks => { 
-                    println!("Proxy mode: socks (env)");
+                    // println!("Proxy mode: socks (env)");
+                    println!("准备配置SOCKS代理服务，从环境变量中获取代理地址......");
                     return Self::apply_socks_env_proxy();
                 }
             }
@@ -196,23 +192,33 @@ impl Handler {
         if let Ok(http_proxy) = std::env::var("http_proxy")
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {
-            println!("HTTP proxy found: {}", http_proxy);
+            // println!("HTTP proxy found: {}", http_proxy);
+             println!("从环境中找到HTTP代理地址: {}", http_proxy);
             if let Ok(proxy) = Proxy::http(&http_proxy) {
                 builder = builder.proxy(proxy);
+                println!("HTTP代理，配置成功！");
+            }else{
+                println!("HTTP代理，配置失败！");
             }
         } else {
-            println!("No HTTP proxy found in environment");
+            // println!("No HTTP proxy found in environment");
+            println!("没有在环境中找到HTTP代理地址，环境变量名应该为：http_proxy 或 HTTP_PROXY");
         }
 
         if let Ok(https_proxy) = std::env::var("https_proxy")
             .or_else(|_| std::env::var("HTTPS_PROXY"))
         {
-            println!("HTTPS proxy found: {}", https_proxy);
+            // println!("HTTPS proxy found: {}", https_proxy);
+            println!("从环境中找到HTTPS代理地址: {}", https_proxy);
             if let Ok(proxy) = Proxy::https(&https_proxy) {
                 builder = builder.proxy(proxy);
+                println!("HTTPS代理，配置成功！");
+            }else{
+                println!("HTTPS代理，配置失败！");
             }
         } else {
-            println!("No HTTPS proxy found in environment");
+            // println!("No HTTPS proxy found in environment");
+、             println!("没有在环境中找到HTTP代理地址，环境变量名应该为：https_proxy 或 HTTPS_PROXY");
         }
 
         builder.build().unwrap()
@@ -225,53 +231,75 @@ impl Handler {
         if let Ok(mut proxy_url) = std::env::var("all_proxy")
             .or_else(|_| std::env::var("ALL_PROXY"))
         {
-            if proxy_url.starts_with("socks5://") {
-                proxy_url = proxy_url.replacen("socks5://", "socks5h://", 1);
-            }
+            // println!("SOCKS proxy found: {}", proxy_url);
+            println!("从环境中找到SOCKS代理地址: {}", proxy_url);
 
-            println!("SOCKS proxy found: {}", proxy_url);
+            if cli.convert_socks5h {
+                if proxy_url.starts_with("socks5://") {
+                    proxy_url = proxy_url.replacen("socks5://", "socks5h://", 1);
+                    println!("已将socks5地址转换成socks5h地址：{}", proxy_url);
+                }
+            }
 
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 builder = builder.proxy(proxy);
+                println!("从环境中找到SOCKS代理，配置成功!");
+            }else{
+                println!("从环境中找到SOCKS代理，配置失败!");
             }
         } else {
-            println!("No ALL_PROXY found in environment");
+            // println!("No ALL_PROXY found in environment");
+             println!("没有在环境中找到SOCKS代理地址，环境变量名应该为：all_proxy 或 ALL_PROXY");
         }
 
         builder.build().unwrap()
     }
 
     // 根据自定义地址配置对应的代理服务器
-    fn apply_custom_proxy(proxy_url: &str) -> Client{
+    fn apply_custom_proxy(proxy_url: &str, cli:&Cli) -> Client{
         let mut builder = Client::builder();
 
         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
-            println!("Custom HTTP proxy");
+            // println!("Custom HTTP proxy");
+            println!("自定义HTTP/HTTPS代理......");
 
             if let Ok(proxy_http) = Proxy::http(proxy_url) {
                 builder = builder.proxy(proxy_http);
+                println!("HTTP代理，配置成功！");
+            }else{
+                println!("HTTP代理，配置失败！");
             }
 
             if let Ok(proxy_https) = Proxy::https(proxy_url) {
                 builder = builder.proxy(proxy_https);
+                println!("HTTPS代理，配置成功！");
+            }else{
+                println!("HTTPS代理，配置失败！");
             }
 
         } else if proxy_url.starts_with("socks5://") || proxy_url.starts_with("socks5h://") {
-
             let mut url = proxy_url.to_string();
+            println!("自定义SOCKS代理......");
 
-            if url.starts_with("socks5://") {
-                url = url.replacen("socks5://", "socks5h://", 1);
+            if cli.convert_socks5h {
+                if url.starts_with("socks5://") {
+                    url = url.replacen("socks5://", "socks5h://", 1);
+                    println!("已将socks5地址转换成socks5h地址：{}", url);
+                }
             }
 
-            println!("Custom SOCKS proxy: {}", url);
+            // println!("Custom SOCKS proxy: {}", url);
 
             if let Ok(proxy) = Proxy::all(&url) {
                 builder = builder.proxy(proxy);
+                println!("自定义SOCKS代理配，置成功!");
+            }else{
+                println!("自定义SOCKS代理配，置失败!");
             }
 
         } else {
-            println!("Unsupported proxy scheme: {}", proxy_url);
+            // println!("Unsupported proxy scheme: {}", proxy_url);
+            println!("不支持的代理方案: {}", proxy_url);
         }
 
         builder.build().unwrap()
@@ -280,127 +308,6 @@ impl Handler {
 }
 
 
-// impl Handler {
-
-
-//     fn build_client(proxy_mode: ProxyMode, custom_proxy: Option<String>) -> Client {
-//         let mut builder = Client::builder();
-
-//         // 1️⃣ 最高优先级：--proxy
-//         if let Some(proxy_url) = custom_proxy {
-//             println!("Using custom proxy: {}", proxy_url);
-//             return apply_custom_proxy(builder, &proxy_url)
-//                 .build()
-//                 .unwrap();
-//         }
-
-//         // 2️⃣ 根据 proxy-mode
-//         match proxy_mode {
-//             ProxyMode::Auto => {
-//                 println!("Proxy mode: auto (no proxy)");
-//                 return Client::new();
-//                 // return builder.build().unwrap();
-//             }
-
-//             ProxyMode::Http => {
-//                 println!("Proxy mode: http (env)");
-//                 builder = apply_http_env_proxy(builder);
-//             }
-
-//             ProxyMode::Socks => {
-//                 println!("Proxy mode: socks (env)");
-//                 builder = apply_socks_env_proxy(builder);
-//             }
-//         }
-
-//         builder.build().unwrap()
-//     }
-
-//     fn apply_http_env_proxy(mut builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
-//         if let Ok(http_proxy) = std::env::var("http_proxy")
-//             .or_else(|_| std::env::var("HTTP_PROXY"))
-//         {
-//             println!("HTTP proxy found: {}", http_proxy);
-//             if let Ok(proxy) = Proxy::http(&http_proxy) {
-//                 builder = builder.proxy(proxy);
-//             }
-//         } else {
-//             println!("No HTTP proxy found in environment");
-//         }
-
-//         if let Ok(https_proxy) = std::env::var("https_proxy")
-//             .or_else(|_| std::env::var("HTTPS_PROXY"))
-//         {
-//             println!("HTTPS proxy found: {}", https_proxy);
-//             if let Ok(proxy) = Proxy::https(&https_proxy) {
-//                 builder = builder.proxy(proxy);
-//             }
-//         } else {
-//             println!("No HTTPS proxy found in environment");
-//         }
-
-//         builder
-//     }
-
-//     fn apply_socks_env_proxy(mut builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
-//         if let Ok(mut proxy_url) = std::env::var("all_proxy")
-//             .or_else(|_| std::env::var("ALL_PROXY"))
-//         {
-//             if proxy_url.starts_with("socks5://") {
-//                 proxy_url = proxy_url.replacen("socks5://", "socks5h://", 1);
-//             }
-
-//             println!("SOCKS proxy found: {}", proxy_url);
-
-//             if let Ok(proxy) = Proxy::all(&proxy_url) {
-//                 builder = builder.proxy(proxy);
-//             }
-//         } else {
-//             println!("No ALL_PROXY found in environment");
-//         }
-
-//         builder
-//     }
-
-
-//     fn apply_custom_proxy(
-//         mut builder: reqwest::ClientBuilder,
-//         proxy_url: &str,
-//     ) -> reqwest::ClientBuilder {
-
-//         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
-//             println!("Custom HTTP proxy");
-
-//             if let Ok(proxy_http) = Proxy::http(proxy_url) {
-//                 builder = builder.proxy(proxy_http);
-//             }
-
-//             if let Ok(proxy_https) = Proxy::https(proxy_url) {
-//                 builder = builder.proxy(proxy_https);
-//             }
-
-//         } else if proxy_url.starts_with("socks5://") || proxy_url.starts_with("socks5h://") {
-
-//             let mut url = proxy_url.to_string();
-
-//             if url.starts_with("socks5://") {
-//                 url = url.replacen("socks5://", "socks5h://", 1);
-//             }
-
-//             println!("Custom SOCKS proxy: {}", url);
-
-//             if let Ok(proxy) = Proxy::all(&url) {
-//                 builder = builder.proxy(proxy);
-//             }
-
-//         } else {
-//             println!("Unsupported proxy scheme: {}", proxy_url);
-//         }
-
-//         builder
-//     }
-
-// }
 
 
 
@@ -419,40 +326,6 @@ impl Handler {
     }
 
 
-    //kimi-检查代理端口是否可用，一般用来判断环境变量中配置的代理服务地址的端口是否启用。
-    fn check_proxy_alive(proxy_url: &str) -> bool {
-        Url::parse(proxy_url)
-        .ok()
-        .and_then(|url| {
-            let host = url.host_str()?;
-            let port = url.port_or_known_default()?;
-            (host, port).to_socket_addrs().ok()?.next()
-        })
-        .map(|addr| {
-            TcpStream::connect_timeout(&addr, Duration::from_secs(2)).is_ok()
-        })
-        .unwrap_or(false)
-
-
-        // if let Ok(url) = Url::parse(proxy_url) {
-        //     if let Some(host) = url.host_str() {
-        //         if let Some(port) = url.port_or_known_default() {
-        //             if let Ok(mut addrs) = (host, port).to_socket_addrs() {
-        //                 if let Some(addr) = addrs.next() {
-        //                     return TcpStream::connect_timeout(
-        //                         &addr,
-        //                         Duration::from_secs(2),
-        //                     )
-        //                     .is_ok();
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // false
-    }
-
-
     //kimi 新增
     fn build_client() -> Client {
         // 环境变量中没有代理配置信息
@@ -460,32 +333,6 @@ impl Handler {
             // 没有代理 → 直接默认 client
             return Client::new();
         }
-
-
-
-        // 环境变量中配置了代理信息，检查其对应的代理端口是否启用
-        let proxy_vars = [
-            "http_proxy",
-            "HTTP_PROXY",
-            "https_proxy",
-            "HTTPS_PROXY",
-            "all_proxy",
-            "ALL_PROXY",
-        ];
-        let mut is_enable_port = false;
-        for var in proxy_vars {
-            if let Ok(proxy_url) = std::env::var(var) {
-                if Self::check_proxy_alive(&proxy_url) {
-                    is_enable_port = true;
-                    break;
-                } 
-            }
-        }
-        //如果都不可用则不创建Proxy配置
-        if !is_enable_port {
-            return Client::new();
-        }
-
 
 
         let mut client = Client::builder();
@@ -532,7 +379,6 @@ impl Handler {
             //Kimi修改后
             // client: Self::build_client(),
             client: Self::build_client_test(),
-            // client: self.build_client_test(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
@@ -612,13 +458,6 @@ impl Handler {
             println!("File already exists: {}, skipping download.", fname.display());
             return Ok(());
         }
-        // // 检测文件大小 > 0 才跳过，避免空文件和上次下载中断
-        // if let Ok(metadata) = std::fs::metadata(&fname) {
-        //     if metadata.len() > 0 {
-        //         println!("File already exists: {}, skipping download.", fname.display());
-        //         return Ok(());
-        //     }
-        // }
 
 
         // Extract host from target URL for proper headers

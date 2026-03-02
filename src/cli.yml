@@ -21,28 +21,30 @@ args:
       short: r
       long: retry
       takes_value: false
-      help: Force retry until all downloads succeed
+      help: 强制重试，直到所有下载成功
 
   # ✅ 新增 proxy-mode
   - proxy-mode:
       long: proxy-mode
-      value_name: 代理模式
+      value_name: none|http|socks
       possible_values:
         - none
         - http
         - socks
       default_value: none
       help: |
-        代理模式: ( none | http | socks)
+        指定代理模式，代理服务器会自动从环境变量(http_proxy|https_proxy|all_proxy)中获取
             none: 使用默认方式，不配置代理信息
-            http: 同时配置Proxy::http，Proxy::https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式。
-            socks: 配置Proxy::all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式。  
-
-        说明：如果--proxy参数同时配置，则会使用--proxy进行代理配置。
-
+            http: 同时配置Proxy.http，Proxy.https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
+            socks: 配置Proxy.all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
 
   # ✅ 新增 proxy
   - proxy:
       long: proxy
-      value_name: 自定义代理服务地址
-      help: 自定义代理服务器地址，优先级高于proxy-mode
+      value_name: url
+      help: 自定义代理服务器地址，优先级高于--proxy-mode
+
+  - convert-socks5h:
+      long: convert-socks5h
+      takes_value: false
+      help: 将socks5协议的代理地址转换成socks5h协议。
