@@ -352,61 +352,61 @@ impl Handler {
 
 
 // //kimi old
-// impl Handler {
+impl Handler {
 
-//     //kimi新增-检测环境变量中是否存在all_proxy相关配置
-//     fn has_env_proxy() -> bool {
-//     std::env::var("HTTPS_PROXY").is_ok()
-//         || std::env::var("https_proxy").is_ok()
-//         || std::env::var("HTTP_PROXY").is_ok()
-//         || std::env::var("http_proxy").is_ok()
-//         || std::env::var("ALL_PROXY").is_ok()
-//         || std::env::var("all_proxy").is_ok()
-//     }
+    //kimi新增-检测环境变量中是否存在all_proxy相关配置
+    fn has_env_proxy() -> bool {
+    std::env::var("HTTPS_PROXY").is_ok()
+        || std::env::var("https_proxy").is_ok()
+        || std::env::var("HTTP_PROXY").is_ok()
+        || std::env::var("http_proxy").is_ok()
+        || std::env::var("ALL_PROXY").is_ok()
+        || std::env::var("all_proxy").is_ok()
+    }
 
-//     fn build_client() -> Client {
-//         // 环境变量中没有代理配置信息
-//         if !Self::has_env_proxy() {
-//             // 没有代理 → 直接默认 client
-//             return Client::new();
-//         }
+    fn build_client_old() -> Client {
+        // 环境变量中没有代理配置信息
+        if !Self::has_env_proxy() {
+            // 没有代理 → 直接默认 client
+            return Client::new();
+        }
 
-//         let mut client = Client::builder();
+        let mut client = Client::builder();
         
-//         if let Ok(proxy_url) = std::env::var("http_proxy")
-//             .or_else(|_| std::env::var("HTTP_PROXY"))
-//         {
-//             println!("准备配置HTTP_PROXY代理  ->  url: {}",proxy_url);
-//             if let Ok(proxy) = Proxy::http(&proxy_url) {
-//                 client = client.proxy(proxy);
-//                  eprintln!("配置了HTTP_PROXY代理......");
-//             }
-//         }
-//         if let Ok(proxy_url) = std::env::var("https_proxy")
-//             .or_else(|_| std::env::var("HTTPS_PROXY"))
-//         {
-//             println!("准备配置HTTPS_PROXY代理  ->  url: {}",proxy_url);
-//             if let Ok(proxy) = Proxy::https(&proxy_url) {
-//                 client = client.proxy(proxy);
-//                  eprintln!("配置了HTTPS_PROXY代理......");
-//             }
-//         }
-//         if let Ok(proxy_url) = std::env::var("ALL_PROXY")
-//             .or_else(|_| std::env::var("all_proxy"))
-//         {
-//             // let proxy_url = proxy_url.replace("socks5://", "socks5h://");
-//              println!("准备配置ALL_PROXY代理  ->  url: {}",proxy_url);
-//             if let Ok(proxy) = Proxy::all(&proxy_url) {
-//                 client = client.proxy(proxy);
-//                 eprintln!("配置了ALL_PROXY代理......");
-//             }
-//         }
+        if let Ok(proxy_url) = std::env::var("http_proxy")
+            .or_else(|_| std::env::var("HTTP_PROXY"))
+        {
+            println!("准备配置HTTP_PROXY代理  ->  url: {}",proxy_url);
+            if let Ok(proxy) = Proxy::http(&proxy_url) {
+                client = client.proxy(proxy);
+                 eprintln!("配置了HTTP_PROXY代理......");
+            }
+        }
+        if let Ok(proxy_url) = std::env::var("https_proxy")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+        {
+            println!("准备配置HTTPS_PROXY代理  ->  url: {}",proxy_url);
+            if let Ok(proxy) = Proxy::https(&proxy_url) {
+                client = client.proxy(proxy);
+                 eprintln!("配置了HTTPS_PROXY代理......");
+            }
+        }
+        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("all_proxy"))
+        {
+            // let proxy_url = proxy_url.replace("socks5://", "socks5h://");
+             println!("准备配置ALL_PROXY代理  ->  url: {}",proxy_url);
+            if let Ok(proxy) = Proxy::all(&proxy_url) {
+                client = client.proxy(proxy);
+                eprintln!("配置了ALL_PROXY代理......");
+            }
+        }
 
 
-//         client.build().unwrap()
-//     }
+        client.build().unwrap()
+    }
 
-// }
+}
 
 
 
@@ -419,7 +419,8 @@ impl Handler {
             // client: reqwest::Client::new(),
             //Kimi修改后
             // client: Self::build_client(),
-            client: GLOBAL_CLIENT.clone(),
+            // client: GLOBAL_CLIENT.clone(),
+            client: Self::build_client_old(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
