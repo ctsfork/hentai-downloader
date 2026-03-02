@@ -10,9 +10,7 @@ use std::net::{TcpStream, ToSocketAddrs};
 use std::time::Duration;
 use reqwest::Url;
 
-
 use clap::App;
-
 use crate::parser;
 use crate::parser::Cli;
 use crate::parser::ProxyMode;
