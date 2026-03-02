@@ -2,6 +2,7 @@ name: hentai-downloader
 version: "0.2"
 author: Hongsheng Zheng <mathan0203@gmail.com>
 about: Download the Manga from e(x)hentai website.
+
 args:
   - cookie:
       short: c
@@ -21,4 +22,27 @@ args:
       long: retry
       takes_value: false
       help: Force retry until all downloads succeed
-    
+
+  # ✅ 新增 proxy-mode
+  - proxy-mode:
+      long: proxy-mode
+      value_name: 代理模式
+      possible_values:
+        - none
+        - http
+        - socks
+      default_value: none
+      help: |
+        代理模式: ( none | http | socks)
+            none: 使用默认方式，不配置代理信息
+            http: 同时配置Proxy::http，Proxy::https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式。
+            socks: 配置Proxy::all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式。  
+
+        说明：如果--proxy参数同时配置，则会使用--proxy进行代理配置。
+
+
+  # ✅ 新增 proxy
+  - proxy:
+      long: proxy
+      value_name: 自定义代理服务地址
+      help: 自定义代理服务器地址，优先级高于proxy-mode
