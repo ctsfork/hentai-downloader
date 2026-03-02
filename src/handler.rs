@@ -155,7 +155,7 @@ impl Handler {
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
         let cli: Cli = parser::parse_cli(&matches);
-        println!("kimi-cli -> {:?}", cli);
+        // println!("kimi-cli -> {:?}", cli);
 
         // 1️⃣ 最高优先级：--proxy
         if let Some(proxy_url) = &cli.proxy {
@@ -246,13 +246,14 @@ impl Handler {
             println!("SOCKS proxy_url: {}", proxy_url);
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 builder = builder.proxy(proxy);
-                println!("从环境中找到SOCKS代理，配置成功!");
+                println!("SOCKS代理，配置成功!");
             }else{
-                println!("从环境中找到SOCKS代理，配置失败!");
+                println!("SOCKS代理，配置失败!");
             }
         } else {
             // println!("No ALL_PROXY found in environment");
              println!("没有在环境中找到SOCKS代理地址，环境变量名应该为：all_proxy 或 ALL_PROXY");
+             println!("SOCKS代理，配置失败!");
         }
 
         builder.build().unwrap()
@@ -264,7 +265,7 @@ impl Handler {
 
         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
             // println!("Custom HTTP proxy");
-            println!("自定义HTTP/HTTPS代理......");
+            println!("准备配置HTTP/HTTPS代理......");
 
             if let Ok(proxy_http) = Proxy::http(proxy_url) {
                 builder = builder.proxy(proxy_http);
@@ -282,7 +283,7 @@ impl Handler {
 
         } else if proxy_url.starts_with("socks5://") || proxy_url.starts_with("socks5h://") {
             let mut url = proxy_url.to_string();
-            println!("自定义SOCKS代理......");
+            println!("准备配置SOCKS代理......");
 
             if cli.convert_socks5h {
                 if url.starts_with("socks5://") {
@@ -292,17 +293,17 @@ impl Handler {
             }
 
             // println!("Custom SOCKS proxy: {}", url);
-            println!("SOCKS proxy_url: {}", proxy_url);
+            println!("SOCKS proxy_url: {}", url);
             if let Ok(proxy) = Proxy::all(&url) {
                 builder = builder.proxy(proxy);
-                println!("自定义SOCKS代理配，置成功!");
+                println!("SOCKS代理，配置成功!");
             }else{
-                println!("自定义SOCKS代理配，置失败!");
+                println!("SOCKS代理，配置失败!");
             }
 
         } else {
             // println!("Unsupported proxy scheme: {}", proxy_url);
-            println!("不支持的代理方案: {}", proxy_url);
+            println!("自定义代理配置失败，不支持的代理方案: {}", proxy_url);
         }
 
         builder.build().unwrap()

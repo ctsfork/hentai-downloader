@@ -80,7 +80,7 @@ pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
     let proxy = if let Some(proxy_str) = matches.value_of("proxy") {
         let proxy_str = proxy_str.trim();
         let parsed = Url::parse(proxy_str)
-            .expect("Invalid proxy URL format");
+            .expect("Invalid proxy URL format, only supported: http, https, socks5, socks5h");
 
         match parsed.scheme() {
             "http" | "https" | "socks5" | "socks5h" => {}
