@@ -172,12 +172,12 @@ impl Handler {
                 ProxyMode::Http => { 
                     // println!("Proxy mode: http (env)");
                     println!("准备配置HTTP代理服务，从环境变量中获取代理地址......");
-                    return Self::apply_http_env_proxy(&cli);
+                    return Self::apply_http_env_proxy();
                 }
                 ProxyMode::Socks => { 
                     // println!("Proxy mode: socks (env)");
                     println!("准备配置SOCKS代理服务，从环境变量中获取代理地址......");
-                    return Self::apply_socks_env_proxy();
+                    return Self::apply_socks_env_proxy(&cli);
                 }
             }
         }
