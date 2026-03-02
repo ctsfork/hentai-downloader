@@ -15,7 +15,21 @@ use crate::parser;
 use crate::parser::Cli;
 use crate::parser::ProxyMode;
 
+//用来实现同步单例
+use once_cell::sync::Lazy;
 
+
+
+
+// 创建Client的单利，防止重复配置
+static GLOBAL_CLIENT: Lazy<Client> = Lazy::new(|| {
+    // Client::builder()
+    //     .pool_max_idle_per_host(16)
+    //     .tcp_keepalive(Duration::from_secs(30))
+    //     .build()
+    //     .expect("Failed to build client")
+    Handler::build_client()
+});
 
 
 
@@ -404,7 +418,8 @@ impl Handler {
             //修改前
             // client: reqwest::Client::new(),
             //Kimi修改后
-            client: Self::build_client(),
+            // client: Self::build_client(),
+            client: GLOBAL_CLIENT.clone(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }

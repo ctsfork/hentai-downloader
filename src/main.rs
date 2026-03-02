@@ -99,9 +99,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //
     let mut pending_tasks = download_urls;
 
+
+    let pool = ThreadPool::new(16);
+
     //新增循环逻辑
     loop {
-        let pool = ThreadPool::new(16);
+        // let pool = ThreadPool::new(16);
         let failed_tasks = Arc::new(Mutex::new(Vec::new()));
 
         // for (target, filename) in pending_tasks.clone() {

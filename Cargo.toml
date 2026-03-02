@@ -10,3 +10,4 @@ reqwest = { version = "0.11", features = ["blocking", "socks", "rustls-tls"] }
 url = "2.5.8"
 select = "0.6"
 threadpool = "1.7.1"
+once_cell = "1"
