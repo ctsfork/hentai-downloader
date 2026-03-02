@@ -190,7 +190,7 @@ impl Handler {
 
 
     // 读取环境变量(http_proxy|https_proxy)的值配置Proxy::http，Proxy::https代理服务。
-    fn apply_http_env_proxy(&self) -> Client{
+    fn apply_http_env_proxy() -> Client{
         let mut builder = Client::builder();
 
         if let Ok(http_proxy) = std::env::var("http_proxy")
@@ -219,7 +219,7 @@ impl Handler {
     }
 
     // 读取环境变量(all_proxy)的值配置Proxy::all代理服务
-    fn apply_socks_env_proxy(&self) -> Client{
+    fn apply_socks_env_proxy() -> Client{
         let mut builder = Client::builder();
 
         if let Ok(mut proxy_url) = std::env::var("all_proxy")
@@ -242,7 +242,7 @@ impl Handler {
     }
 
     // 根据自定义地址配置对应的代理服务器
-    fn apply_custom_proxy(&self, proxy_url: &str) -> Client{
+    fn apply_custom_proxy(proxy_url: &str) -> Client{
         let mut builder = Client::builder();
 
         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
