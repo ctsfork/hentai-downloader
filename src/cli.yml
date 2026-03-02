@@ -33,7 +33,7 @@ args:
         - socks
       default_value: none
       help: |
-        指定代理模式，代理服务器会自动从环境变量(http_proxy|https_proxy|all_proxy)中获获取
+        选择代理模式，并且会自动从环境变量中读取对应的代理地址进行配置。支持的环境变量名称: http_proxy，https_proxy，all_proxy且支持大写方式
         none：使用默认方式，不配置代理服务
         http：同时配置Proxy.http，Proxy.https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
         socks：配置Proxy.all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
@@ -42,9 +42,11 @@ args:
   - proxy:
       long: proxy
       value_name: url
-      help: 自定义代理服务器地址，优先级高于--proxy-mode
+      help: |
+        自定义代理服务地址，优先级高于proxy-mode参数
+        只支持：http, https, socks5, socks5h
 
   - convert-socks5h:
       long: convert-socks5h
       takes_value: false
-      help: 将socks5协议的代理地址转换成socks5h协议。
+      help: 将socks5协议的代理地址转换成socks5h协议
