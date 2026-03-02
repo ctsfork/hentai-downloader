@@ -161,7 +161,7 @@ impl Handler {
         if let Some(proxy_url) = &cli.proxy {
              // println!("Using custom proxy: {}", proxy_url);
              println!("准备配置自定义代理服务: {}", proxy_url);
-            return Self::apply_custom_proxy(&proxy_url);
+            return Self::apply_custom_proxy(&proxy_url,&cli);
         } else {
             // 2️⃣ 根据 proxy-mode
             match cli.proxy_mode {
@@ -172,7 +172,7 @@ impl Handler {
                 ProxyMode::Http => { 
                     // println!("Proxy mode: http (env)");
                     println!("准备配置HTTP代理服务，从环境变量中获取代理地址......");
-                    return Self::apply_http_env_proxy();
+                    return Self::apply_http_env_proxy(&cli);
                 }
                 ProxyMode::Socks => { 
                     // println!("Proxy mode: socks (env)");
@@ -218,14 +218,14 @@ impl Handler {
             }
         } else {
             // println!("No HTTPS proxy found in environment");
-、             println!("没有在环境中找到HTTP代理地址，环境变量名应该为：https_proxy 或 HTTPS_PROXY");
+             println!("没有在环境中找到HTTP代理地址，环境变量名应该为：https_proxy 或 HTTPS_PROXY");
         }
 
         builder.build().unwrap()
     }
 
     // 读取环境变量(all_proxy)的值配置Proxy::all代理服务
-    fn apply_socks_env_proxy() -> Client{
+    fn apply_socks_env_proxy(cli:&Cli) -> Client{
         let mut builder = Client::builder();
 
         if let Ok(mut proxy_url) = std::env::var("all_proxy")
