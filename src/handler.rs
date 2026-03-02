@@ -230,6 +230,7 @@ impl Handler {
         {
             if let Ok(proxy) = Proxy::http(&proxy_url) {
                 client = client.proxy(proxy);
+                 eprintln!("配置了HTTP_PROXY代理......");
             }
         }
         if let Ok(proxy_url) = std::env::var("https_proxy")
@@ -237,14 +238,16 @@ impl Handler {
         {
             if let Ok(proxy) = Proxy::https(&proxy_url) {
                 client = client.proxy(proxy);
+                 eprintln!("配置了HTTPS_PROXY代理......");
             }
         }
         if let Ok(proxy_url) = std::env::var("all_proxy")
             .or_else(|_| std::env::var("ALL_PROXY"))
         {
-            let proxy_url = proxy_url.replace("socks5://", "socks5h://");
+            // let proxy_url = proxy_url.replace("socks5://", "socks5h://");
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 client = client.proxy(proxy);
+                eprintln!("配置了ALL_PROXY代理......");
             }
         }
 
