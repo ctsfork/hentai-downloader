@@ -33,7 +33,8 @@ args:
         - socks
       default_value: none
       help: |
-        选择代理模式，并且会自动从环境变量中读取对应的代理地址进行配置。支持的环境变量名称: http_proxy，https_proxy，all_proxy且支持大写方式
+        选择不同的代理模式，会自动从环境变量中读取相对应的代理服务地址进行配置
+        支持的环境变量名称：http_proxy，https_proxy，all_proxy 且支持它们的大写方式
         none：使用默认方式，不配置代理服务
         http：同时配置Proxy.http，Proxy.https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
         socks：配置Proxy.all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
