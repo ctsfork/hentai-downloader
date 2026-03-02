@@ -112,8 +112,8 @@ pub fn parse_cli(matches: &clap::ArgMatches) -> Cli {
         "none" => ProxyMode::None,
         "http" => ProxyMode::Http,
         "socks" => ProxyMode::Socks,
-        // _ => unreachable!(),
-        _ => expect("--proxy-mode的值错误，只支持:none,http,socks");
+        _ => unreachable!(),
+        // _ => expect("--proxy-mode的值错误，只支持:none,http,socks");
     };
 
 

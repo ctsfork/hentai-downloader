@@ -11,14 +11,14 @@ use std::time::Duration;
 use reqwest::Url;
 
 
-#[macro_use]
-extern crate clap;
+// #[macro_use]
+// extern crate clap;
 
-mod parser;
-
-use crate::parser::Cli;
+// mod parser;
 
 use clap::App;
+use crate::parser::Cli;
+use crate::parser::ProxyMode;
 
 
 
@@ -162,7 +162,7 @@ impl Handler {
         println!("{:?}", cli);
 
 
-        let mut builder = Client::builder();
+        // let mut builder = Client::builder();
        // return builder.build().unwrap();
 
 
@@ -188,7 +188,7 @@ impl Handler {
             }
         }
 
-        return Client::new();
+        // return Client::new();
     }
 
     // 读取环境变量(http_proxy|https_proxy)的值配置Proxy::http，Proxy::https代理服务。
@@ -533,7 +533,7 @@ impl Handler {
             // client: reqwest::Client::new(),
             //Kimi修改后
             // client: Self::build_client(),
-            client: self.build_client_test(),
+            client: Self::build_client_test(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
