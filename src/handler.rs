@@ -157,7 +157,8 @@ impl Handler {
         //加载解析参数配置文件
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
-        let Cli cli = parse_cli(&matches);
+        //Cli
+        let cli: Cli = parser::parse_cli(&matches);
         println!("{:?}", cli);
 
 
@@ -216,7 +217,7 @@ impl Handler {
             println!("No HTTPS proxy found in environment");
         }
 
-        builder.build().unwrap();
+        builder.build().unwrap()
     }
 
     // 读取环境变量(all_proxy)的值配置Proxy::all代理服务
@@ -239,7 +240,7 @@ impl Handler {
             println!("No ALL_PROXY found in environment");
         }
 
-        builder.build().unwrap();
+        builder.build().unwrap()
     }
 
     // 根据自定义地址配置对应的代理服务器
@@ -275,7 +276,7 @@ impl Handler {
             println!("Unsupported proxy scheme: {}", proxy_url);
         }
 
-        builder.build().unwrap();
+        builder.build().unwrap()
     }
 
 }

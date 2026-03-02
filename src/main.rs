@@ -54,7 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
-    let Cli { url, cookie } = parser::parse_cli(&matches);
+    // let Cli { url, cookie } = parser::parse_cli(&matches);
+    let cli: Cli  = parser::parse_cli(&matches);
+    let url = cli.url;
+    let cookie = cli.cookie;
 
     let host = url.host().unwrap().to_string();
 

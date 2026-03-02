@@ -55,7 +55,7 @@ pub struct Cli {
     pub retry: bool,
 
     pub proxy_mode: ProxyMode,
-    pub proxy: Option<Url>,
+    pub proxy: Option<String>,
 }
 
 
