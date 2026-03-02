@@ -17,6 +17,8 @@ use reqwest::Url;
 // mod parser;
 
 use clap::App;
+
+use crate::parser;
 use crate::parser::Cli;
 use crate::parser::ProxyMode;
 
@@ -157,13 +159,9 @@ impl Handler {
         //加载解析参数配置文件
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
-        //Cli
         let cli: Cli = parser::parse_cli(&matches);
         println!("{:?}", cli);
 
-
-        // let mut builder = Client::builder();
-       // return builder.build().unwrap();
 
 
         // 1️⃣ 最高优先级：--proxy
@@ -188,7 +186,7 @@ impl Handler {
             }
         }
 
-        // return Client::new();
+
     }
 
     // 读取环境变量(http_proxy|https_proxy)的值配置Proxy::http，Proxy::https代理服务。
@@ -533,7 +531,8 @@ impl Handler {
             // client: reqwest::Client::new(),
             //Kimi修改后
             // client: Self::build_client(),
-            client: Self::build_client_test(),
+            // client: Self::build_client_test(),
+            client: self.build_client_test(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
