@@ -155,7 +155,7 @@ pub struct Handler {
 
 impl Handler {
     // 根据参数选择对应的代理配置
-    fn build_client_test(&self) -> Client {
+    fn build_client_test() -> Client {
         //加载解析参数配置文件
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
@@ -186,8 +186,8 @@ impl Handler {
             }
         }
 
-
     }
+
 
     // 读取环境变量(http_proxy|https_proxy)的值配置Proxy::http，Proxy::https代理服务。
     fn apply_http_env_proxy(&self) -> Client{
@@ -531,8 +531,8 @@ impl Handler {
             // client: reqwest::Client::new(),
             //Kimi修改后
             // client: Self::build_client(),
-            // client: Self::build_client_test(),
-            client: self.build_client_test(),
+            client: Self::build_client_test(),
+            // client: self.build_client_test(),
             host: host.to_string(),
             cookie: cookie.to_string(),
         }
