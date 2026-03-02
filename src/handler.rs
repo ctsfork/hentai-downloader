@@ -280,7 +280,7 @@ impl Handler {
 
         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
             // println!("Custom HTTP proxy");
-            println!("Configure HTTP/HTTPS proxy: {}", url);
+            println!("Configure HTTP/HTTPS proxy: {}", proxy_url);
             // println!("准备配置HTTP/HTTPS代理......");
 
             if let Ok(proxy_http) = Proxy::http(proxy_url) {
