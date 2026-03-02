@@ -167,7 +167,7 @@ impl Handler {
         // 1️⃣ 最高优先级：--proxy
         if let Some(proxy_url) = &cli.proxy {
              println!("Using custom proxy: {}", proxy_url);
-            return self.apply_custom_proxy(&proxy_url);
+            return Self::apply_custom_proxy(&proxy_url);
         } else {
             // 2️⃣ 根据 proxy-mode
             match cli.proxy_mode {
@@ -177,11 +177,11 @@ impl Handler {
                 }
                 ProxyMode::Http => { 
                     println!("Proxy mode: http (env)");
-                    return self.apply_http_env_proxy();
+                    return Self::apply_http_env_proxy();
                 }
                 ProxyMode::Socks => { 
                     println!("Proxy mode: socks (env)");
-                    return self.apply_socks_env_proxy();
+                    return Self::apply_socks_env_proxy();
                 }
             }
         }
