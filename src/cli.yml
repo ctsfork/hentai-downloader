@@ -33,10 +33,10 @@ args:
         - socks
       default_value: none
       help: |
-        指定代理模式，代理服务器会自动从环境变量(http_proxy|https_proxy|all_proxy)中获取
-            none: 使用默认方式，不配置代理信息
-            http: 同时配置Proxy.http，Proxy.https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
-            socks: 配置Proxy.all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
+        指定代理模式，代理服务器会自动从环境变量(http_proxy|https_proxy|all_proxy)中获获取
+        none：使用默认方式，不配置代理服务
+        http：同时配置Proxy.http，Proxy.https代理服务。会自动读取环境变量(http_proxy|https_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
+        socks：配置Proxy.all代理服务，会自动读取环境变量(all_proxy)的代理服务地址，变量值不存在就会自动切换到none模式
 
   # ✅ 新增 proxy
   - proxy:

@@ -203,6 +203,7 @@ impl Handler {
         } else {
             // println!("No HTTP proxy found in environment");
             println!("没有在环境中找到HTTP代理地址，环境变量名应该为：http_proxy 或 HTTP_PROXY");
+            println!("HTTP代理，配置失败！");
         }
 
         if let Ok(https_proxy) = std::env::var("https_proxy")
@@ -219,6 +220,7 @@ impl Handler {
         } else {
             // println!("No HTTPS proxy found in environment");
              println!("没有在环境中找到HTTP代理地址，环境变量名应该为：https_proxy 或 HTTPS_PROXY");
+             println!("HTTPS代理，配置失败！");
         }
 
         builder.build().unwrap()
@@ -241,6 +243,7 @@ impl Handler {
                 }
             }
 
+            println!("SOCKS proxy_url: {}", proxy_url);
             if let Ok(proxy) = Proxy::all(&proxy_url) {
                 builder = builder.proxy(proxy);
                 println!("从环境中找到SOCKS代理，配置成功!");
@@ -289,7 +292,7 @@ impl Handler {
             }
 
             // println!("Custom SOCKS proxy: {}", url);
-
+            println!("SOCKS proxy_url: {}", proxy_url);
             if let Ok(proxy) = Proxy::all(&url) {
                 builder = builder.proxy(proxy);
                 println!("自定义SOCKS代理配，置成功!");
