@@ -51,7 +51,7 @@ args:
       long: convert-socks5h
       takes_value: false
       help: |
-      将socks5协议的代理地址转换成socks5h协议格式
+        将socks5协议的代理地址转换成socks5h协议格式
         socks5：使用本地DNS解析域名，可能会污染域名，导致不能正常代理
         socks5h：使用远程DNS解析域名，不会污染域名，能正确代理
 
