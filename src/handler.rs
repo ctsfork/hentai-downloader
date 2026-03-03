@@ -6,9 +6,9 @@ use std::fmt;
 use reqwest::Proxy;
 use reqwest::blocking::{Client};
 use std::collections::HashMap;
-use std::net::{TcpStream, ToSocketAddrs};
-use std::time::Duration;
-use reqwest::Url;
+// use std::net::{TcpStream, ToSocketAddrs};
+// use std::time::Duration;
+// use reqwest::Url;
 
 use clap::App;
 use crate::parser;

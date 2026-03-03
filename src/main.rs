@@ -95,6 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //-r | --retry 参数获取
     let force_retry = matches.is_present("retry");
+    // let force_retry = cli.retry;
 
     //
     let mut pending_tasks = download_urls;
