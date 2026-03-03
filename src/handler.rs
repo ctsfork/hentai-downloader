@@ -217,8 +217,9 @@ impl Handler {
         // // println!("CLI -> {:?}", cli);
 
         // let cli: Cli = (*GLOBAL_CLI).clone();
-        // let cli: &Cli = &*GLOBAL_CLI;
-        let cli: &Cli = &GLOBAL_CLI;
+        // let cli = &GLOBAL_CLI;
+        let cli: &Cli = &*GLOBAL_CLI;
+
 
 
         // 1️⃣ 最高优先级：--proxy
@@ -420,9 +421,8 @@ impl Handler {
         let mut proxies = Vec::new();
 
         // let cli: Cli = (*GLOBAL_CLI).clone();
-        // let cli: &Cli = &*GLOBAL_CLI;
-        let cli: &Cli = &GLOBAL_CLI;
-
+        // let cli = &GLOBAL_CLI;
+        let cli: &Cli = &*GLOBAL_CLI;
 
 
         // 1️⃣ 最高优先级：--proxy
