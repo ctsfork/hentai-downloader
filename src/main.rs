@@ -136,20 +136,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 
 
-                            // println!(
-                            //     "[Attempt {}/{}] Download failed for {}: {}",
-                            //     attempt, max_retries, filename, e
-                            // );
-                            // if attempt == max_retries {
-                            //     println!(
-                            //         "Failed to download {} after {} attempts",
-                            //         filename, max_retries
-                            //     );
-                            // }
-                            // thread::sleep(Duration::from_secs(1));
-
-
-
                             if attempt == max_retries {
                                 println!(
                                     "Failed after {} attempts: {} ({})",
