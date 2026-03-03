@@ -64,18 +64,19 @@ impl Manga {
 
 
         let mut pages = 0;
+
         Document::from(body.as_str())
-            .expect("Document read response failed.")
             .find(Name("a"))
             .filter_map(|n| n.attr("href"))
             .for_each(|x| {
-                if x.contains("?p=") {
-                    let num = x.split("?p=").last();
-                    pages = max(num.unwrap_or("0").parse::<u32>().unwrap_or(0), pages);
+                if let Some(pos) = x.find("?p=") {
+                    let num_str = &x[pos + 3..];
+                    if let Ok(num) = num_str.parse::<u32>() {
+                        pages = max(num, pages);
+                    }
                 }
             });
         pages
-        
     }
 
     /// Returns (image_url, filename)

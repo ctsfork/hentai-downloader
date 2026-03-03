@@ -212,7 +212,7 @@ impl Handler {
         // let cli: Cli = parser::parse_cli(&matches);
         // // println!("CLI -> {:?}", cli);
 
-        let cli: Cli = GLOBAL_CLI;
+        let cli: Cli = GLOBAL_CLI.clone();
 
 
         // 1️⃣ 最高优先级：--proxy
@@ -412,7 +412,7 @@ impl Handler {
     */
     fn build_proxies() -> Vec<Proxy> {
         let mut proxies = Vec::new();
-        let cli: Cli = GLOBAL_CLI;
+        let cli: Cli = GLOBAL_CLI.clone();
 
         // 1️⃣ 最高优先级：--proxy
         if let Some(proxy_url) = &cli.proxy {
