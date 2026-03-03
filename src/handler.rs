@@ -44,9 +44,13 @@ static GLOBAL_CLIENT_PROXIES: Lazy<Client> = Lazy::new(|| {
     let mut client = Client::builder();
 
     //使用全局共享的proxys对象
-    let proxies = GLOBAL_PROXIES.clone();
-    for proxy in proxies {
-    client = client.proxy(proxy);
+    // let proxies = GLOBAL_PROXIES.clone();
+    // for proxy in proxies {
+    //     client = client.proxy(proxy);
+    // }
+
+    for proxy in GLOBAL_PROXIES.iter() {
+        client = client.proxy(proxy.clone());
     }
 
     client.build().unwrap()
@@ -212,11 +216,13 @@ impl Handler {
         // let cli: Cli = parser::parse_cli(&matches);
         // // println!("CLI -> {:?}", cli);
 
-        let cli: Cli = GLOBAL_CLI.clone();
+        // let cli: &Cli = &GLOBAL_CLI;
+        // let cli: Cli = (*GLOBAL_CLI).clone();
+        let cli = &*GLOBAL_CLI;
 
 
         // 1️⃣ 最高优先级：--proxy
-        if let Some(proxy_url) = &cli.proxy {
+        if let Some(proxy_url) = &cli.proxy {//or &GLOBAL_CLI.proxy
              println!("Using custom proxy: {}", proxy_url);
              // println!("准备配置自定义代理服务: {}", proxy_url);
             return Self::apply_custom_proxy(&proxy_url,&cli);
@@ -412,10 +418,15 @@ impl Handler {
     */
     fn build_proxies() -> Vec<Proxy> {
         let mut proxies = Vec::new();
-        let cli: Cli = GLOBAL_CLI.clone();
+        // let cli: Cli = GLOBAL_CLI.clone();
+
+        // let cli: &Cli = &GLOBAL_CLI;
+        // let cli: Cli = (*GLOBAL_CLI).clone();
+        let cli = &*GLOBAL_CLI;
+
 
         // 1️⃣ 最高优先级：--proxy
-        if let Some(proxy_url) = &cli.proxy {
+        if let Some(proxy_url) = &cli.proxy {////or &GLOBAL_CLI.proxy
              println!("Using custom proxy: {}", proxy_url);
              if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
                 if let Ok(proxy) = Proxy::http(proxy_url) {
@@ -532,7 +543,7 @@ impl Handler {
 impl Handler {
 
     // 方式1：
-    // 构建client的方式：每执行一次就创建一个client对象，注意：proxys对象是全局的。  
+    // 构建client的方式：每执行一次就创建一个client对象，注意：proxys每次都会从全局变量中clone  
     fn build_client_new() -> Client {
         let mut client = Client::builder();
 
@@ -540,10 +551,16 @@ impl Handler {
         // let proxies = Self::build_proxies();
 
         //使用全局共享的proxys对象
-        let proxies = GLOBAL_PROXIES.clone();
-        for proxy in proxies {
-            client = client.proxy(proxy);
+        // let proxies = GLOBAL_PROXIES.clone();
+        // for proxy in proxies {
+        //     client = client.proxy(proxy);
+        // }
+
+
+        for proxy in GLOBAL_PROXIES.iter() {
+            client = client.proxy(proxy.clone());
         }
+
 
         client.build().unwrap()
     }
