@@ -26,11 +26,45 @@ impl Manga {
         segs[1].parse::<u32>().expect("Incorrect url")
     }
     fn get_page_number(h: &Handler, url: &reqwest::Url) -> u32 {
-        let mut pages = 0;
+        // let mut pages = 0;
+        // let res = h
+        //     .request("Get Page number", &url[..])
+        //     .expect("Get page number failed");
+        // Document::from_read(res)
+        //     .expect("Document read response failed.")
+        //     .find(Name("a"))
+        //     .filter_map(|n| n.attr("href"))
+        //     .for_each(|x| {
+        //         if x.contains("?p=") {
+        //             let num = x.split("?p=").last();
+        //             pages = max(num.unwrap_or("0").parse::<u32>().unwrap_or(0), pages);
+        //         }
+        //     });
+        // pages
+
+
+
         let res = h
             .request("Get Page number", &url[..])
             .expect("Get page number failed");
-        Document::from_read(res)
+
+        let status = res.status();
+        let body = res.text().expect("Failed to read body");
+
+        // 🔴 检查是否被封
+        if status.as_u16() == 503
+            || body.contains("This IP address has been temporarily banned due to an excessive request rate")
+        {
+            eprintln!("Your IP has been temporarily banned.");
+            eprintln!("Consider:");
+            eprintln!("  • Wait for a while and try again");
+            eprintln!("  • Switch IP and try again");
+            std::process::exit(1);
+        }
+
+
+        let mut pages = 0;
+        Document::from(body.as_str())
             .expect("Document read response failed.")
             .find(Name("a"))
             .filter_map(|n| n.attr("href"))
@@ -41,6 +75,7 @@ impl Manga {
                 }
             });
         pages
+        
     }
 
     /// Returns (image_url, filename)
