@@ -240,7 +240,8 @@ impl Handler {
 
                     let mut client = Client::builder()
                         .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
-                        .danger_accept_invalid_hostnames(true);     
+                        .danger_accept_invalid_hostnames(true)
+                        .build().unwrap();
                     return client;               
                 }
                 ProxyMode::Http => { 
