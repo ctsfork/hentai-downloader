@@ -42,12 +42,12 @@ static GLOBAL_PROXIES: Lazy<Vec<Proxy>> = Lazy::new(|| {
 //全局client+proxys
 static GLOBAL_CLIENT_PROXIES: Lazy<Client> = Lazy::new(|| {
     let mut client = Client::builder()
-        .danger_accept_invalid_certs(true)
-        .danger_accept_invalid_hostnames(true);
+        // .danger_accept_invalid_certs(true)
+        // .danger_accept_invalid_hostnames(true);
 
-    // // 关闭TLS证书校验
-    // client.danger_accept_invalid_certs(true);
-    // client.danger_accept_invalid_hostnames(true);
+    // 关闭TLS证书校验
+    client.danger_accept_invalid_certs(true);
+    client.danger_accept_invalid_hostnames(true);
 
 
     //使用全局共享的proxys对象
