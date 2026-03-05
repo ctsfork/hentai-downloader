@@ -42,12 +42,8 @@ static GLOBAL_PROXIES: Lazy<Vec<Proxy>> = Lazy::new(|| {
 //全局client+proxys
 static GLOBAL_CLIENT_PROXIES: Lazy<Client> = Lazy::new(|| {
     let mut client = Client::builder()
-        // .danger_accept_invalid_certs(true)
-        // .danger_accept_invalid_hostnames(true);
-
-    // 关闭TLS证书校验
-    client.danger_accept_invalid_certs(true);
-    client.danger_accept_invalid_hostnames(true);
+        .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+        .danger_accept_invalid_hostnames(true);
 
 
     //使用全局共享的proxys对象
@@ -240,7 +236,12 @@ impl Handler {
             match cli.proxy_mode {
                 ProxyMode::None => { 
                     println!("Proxy mode: none (no proxy)");
-                    return Client::new();
+                    // return Client::new();
+
+                    let mut client = Client::builder()
+                        .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+                        .danger_accept_invalid_hostnames(true);     
+                    return client;               
                 }
                 ProxyMode::Http => { 
                     println!("Proxy mode: http (env)");
@@ -260,11 +261,10 @@ impl Handler {
 
     // 读取环境变量(http_proxy|https_proxy)的值配置Proxy::http，Proxy::https代理服务。
     fn apply_http_env_proxy() -> Client{
-        let mut builder = Client::builder();
+        let mut builder = Client::builder()
+            .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+            .danger_accept_invalid_hostnames(true);
 
-        // // 关闭TLS证书校验
-        // builder.danger_accept_invalid_certs(true);
-        // builder.danger_accept_invalid_hostnames(true);
 
         // //设置最大并发数量
         // builder.pool_max_idle_per_host(20)
@@ -319,11 +319,10 @@ impl Handler {
 
     // 读取环境变量(all_proxy)的值配置Proxy::all代理服务
     fn apply_socks_env_proxy(cli:&Cli) -> Client{
-        let mut builder = Client::builder();
+        let mut builder = Client::builder()
+            .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+            .danger_accept_invalid_hostnames(true);
 
-        // // 关闭TLS证书校验
-        // builder.danger_accept_invalid_certs(true);
-        // builder.danger_accept_invalid_hostnames(true);
 
         if let Ok(mut proxy_url) = std::env::var("all_proxy")
             .or_else(|_| std::env::var("ALL_PROXY"))
@@ -360,11 +359,10 @@ impl Handler {
 
     // 根据自定义地址配置对应的代理服务器
     fn apply_custom_proxy(proxy_url: &str, cli:&Cli) -> Client{
-        let mut builder = Client::builder();
+        let mut builder = Client::builder()
+            .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+            .danger_accept_invalid_hostnames(true);
 
-        // // 关闭TLS证书校验
-        // builder.danger_accept_invalid_certs(true);
-        // builder.danger_accept_invalid_hostnames(true);
 
         if proxy_url.starts_with("http://") || proxy_url.starts_with("https://") {
             // println!("Custom HTTP proxy");
@@ -565,11 +563,9 @@ impl Handler {
     // 方式1：
     // 构建client的方式：每执行一次就创建一个client对象，注意：proxys每次都会从全局变量中clone  
     fn build_client_new() -> Client {
-        let mut client = Client::builder();
-
-        // // 关闭TLS证书校验
-        // client.danger_accept_invalid_certs(true);
-        // client.danger_accept_invalid_hostnames(true);
+        let mut client = Client::builder()
+            .danger_accept_invalid_certs(true)          // 关闭TLS证书校验
+            .danger_accept_invalid_hostnames(true);
 
 
         //获取代理数组并为client设置proxy
