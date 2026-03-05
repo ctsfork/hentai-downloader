@@ -26,16 +26,16 @@ jobs:
         include:
           - target: x86_64-apple-darwin
             os: macos-latest
-          #   archive: tar.gz
-          # - target: aarch64-apple-darwin
-          #   os: macos-latest
-          #   archive: tar.gz
-          # - target: x86_64-unknown-linux-gnu
-          #   os: ubuntu-latest
-          #   archive: tar.gz
-          # - target: x86_64-pc-windows-msvc
-          #   os: windows-latest
-          #   archive: zip
+            archive: tar.gz
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: zip
 
     steps:
       - uses: actions/checkout@v4
@@ -72,36 +72,36 @@ jobs:
           name: ${{ env.BINARY_NAME }}-${{ matrix.target }}
           path: ${{ env.BINARY_NAME }}-${{ matrix.target }}.${{ matrix.archive }}
 
-  # release:
-  #   name: Create Release
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-  #   steps:
-  #     - name: Download all artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         path: artifacts
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-  #     # - name: Create Release
-  #     #   uses: softprops/action-gh-release@v2
-  #     #   with:
-  #     #     files: artifacts/**/*
-  #     #     generate_release_notes: true
+      # - name: Create Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: artifacts/**/*
+      #     generate_release_notes: true
 
-  #     - name: Publish Files To Release
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         allowUpdates: true
-  #         replacesArtifacts: true
-  #         prerelease: false
-  #         draft: false
-  #         # artifacts: "*.zip,config.json,clash.sh"
-  #         # artifacts: "*.zip" 
-  #         artifacts: "artifacts/**/*" 
-  #         tag: "v0.2.0"
-  #         token: ${{ secrets.GITHUB_TOKEN }}   
+      - name: Publish Files To Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          replacesArtifacts: true
+          prerelease: false
+          draft: false
+          # artifacts: "*.zip,config.json,clash.sh"
+          # artifacts: "*.zip" 
+          artifacts: "artifacts/**/*" 
+          tag: "v0.2.0"
+          token: ${{ secrets.GITHUB_TOKEN }}   
 
 

@@ -672,7 +672,10 @@ impl Handler {
         // res
 
 
-        // println!("Task:{}", task);
+        // .get(url)
+        // .header("Referer", "https://e-hentai.org/")
+        // .header("Accept", "image/webp,image/*,*/*")
+
 
         //kimi修改 - 与 is_retryable 相关联
         let res = self
