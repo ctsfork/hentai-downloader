@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 clap = {version = "2.32", features = ["yaml"]}
-reqwest = { version = "0.11", features = ["blocking", "socks", "rustls-tls"] }
+reqwest = { version = "0.11", features = ["blocking", "socks", "native-tls"] }
 url = "2.5.8"
 select = "0.6"
 threadpool = "1.7.1"
